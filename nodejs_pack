@@ -1,0 +1,72 @@
+#!/usr/bin/bash
+
+set -e
+
+npmexecutable="npm"
+
+while [[ $# -gt 0 ]]; do
+	case $1 in
+		--outdir)
+			outdir="$(cd $2 && pwd)"
+			shift
+			;;
+		--npmexecutable)
+			npmexecutable="$2"
+			shift
+			;;
+		*)
+			echo "Unsupported parameter '$1'."
+			exit 1
+			;;
+		esac
+	shift
+done
+
+basedir="$(pwd)"
+
+for file in *.tar; do
+	filebasename="${file%.tar}"
+	
+	# Test for "package.json" in the archive.
+	if tar tf "$file" | grep "${filebasename}/package.json" 1>/dev/null; then
+		tmpdir="$(mktemp -d)"
+		tar xf "$file" -C "$tmpdir"
+		cd "${tmpdir}/${filebasename}" 1>/dev/null
+		
+		# # Create backup of "package.json".
+		# pkgjson_backup="$(mktemp)"
+		# cp "package.json" "$pkgjson_backup"
+		# 
+		# # Merge all dependencies in "package.json" into bundledDependencies.
+		# tmp="$(mktemp)"
+		# jq '.bundledDependencies += .devDependencies + .dependencies' "package.json" > "$tmp"
+		# mv "$tmp" "package.json"
+		
+		# Install npm packages.
+		${npmexecutable} i
+		
+		tar czf "${outdir}/${filebasename}.tar.gz" --transform='s;^./;;g' -C .. .
+		
+		# # Create an archive including all dependencies.
+		# npm pack
+		# 
+		# packname="$(jq --raw-output '.name + "-" + .version' package.json)"
+		# if gzip -d "${packname}.tgz" && [[ -f "${packname}.tar" ]]; then
+		# 	# Replace the "package.json" in the pack archive with the original file.
+		# 	tar uf "${packname}.tar" --transform="s;${pkgjson_backup#/};package/package.json;g" "$pkgjson_backup"
+		# 	rm "$pkgjson_backup"
+		# 	gzip "${packname}.tar"
+		# 
+		# 	# Move the final archive to its destination.
+		# 	mv "${packname}.tar.gz" "${outdir}/${filebasename}.tar.gz"
+		# else
+		# 	echo "Could not uncompress the pack archive under name '${packname}.tgz' or could not find the uncompressed archive in the temporary working directory '$(pwd)'."
+		# 	exit 1
+		# fi
+		
+		# Clean up.
+		cd "$basedir" 1>/dev/null
+		rm "$file"
+		rm -rf "$tmpdir"
+	fi
+done

@@ -1,0 +1,7 @@
+<service name="nodejs_pack_with_deps">
+  <summary>Pack NodeJS applications with their dependencies</summary>
+  <description>TBD</description>
+  <parameter name="npmexecutable">
+    <description>Command that will be used as the npm executable. Defaults to "npm".</description>
+  </parameter>
+</service>
