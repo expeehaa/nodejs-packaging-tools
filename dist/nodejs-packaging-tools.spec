@@ -16,7 +16,7 @@
 #
 
 Name:           nodejs-packaging-tools
-Version:        0.1.0
+Version:        0.2.0
 Release:        0
 Summary:        Tools for packaging NodeJS applications and libraries
 License:        GPL-2.0
