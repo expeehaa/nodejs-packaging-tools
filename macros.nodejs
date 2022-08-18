@@ -1,1 +1,8 @@
 # Define RPM spec macros for NodeJS packaging here.
+
+%nodejs_setup %{expand: \
+	%setup -qn package
+}
+
+%nodejs_rebuild \
+	npm rebuild
